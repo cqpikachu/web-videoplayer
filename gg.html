@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页视频播放器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #4dabf7;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4dabf7;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #339af0;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .clear-btn {
+            background: #ff6b6b;
+        }
+        
+        .clear-btn:hover {
+            background: #fa5252;
+        }
+        
+        .video-container {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .history-section {
+            margin-top: 25px;
+        }
+        
+        .history-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            word-break: break-all;
+        }
+        
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .clear-history {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .deploy-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>跨设备视频播放器</h1>
+    
+    <div class="container">
+        <div class="input-section">
+            <input type="text" class="url-input" id="videoUrl" 
+                   placeholder="在此处粘贴视频链接 (例如: https://example.com/video.mp4)" 
+                   value="">
+            <div class="button-group">
+                <button id="playBtn">播放视频</button>
+                <button class="clear-btn" id="clearBtn">清空地址</button>
+            </div>
+            <div class="error-message" id="errorMsg">无法加载视频，请检查链接是否正确</div>
+        </div>
+        
+        <div class="video-container">
+            <video id="videoPlayer" controls>
+                您的浏览器不支持HTML5视频播放功能。
+            </video>
+        </div>
+        
+        <div class="history-section">
+            <div class="history-title">
+                <span>播放历史</span>
+                <button class="clear-history" id="clearHistoryBtn">清空历史</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- 历史记录将在这里显示 -->
+            </div>
+        </div>
+        
+     
+        
+        <div class="instructions">
+            <p><strong>使用说明：</strong></p>
+            <p>1. 在输入框中粘贴视频链接地址</p>
+            <p>2. 点击"播放视频"按钮开始播放</p>
+            <p>3. 点击播放历史中的链接可以快速重新播放</p>
+            <p>4. 此播放器支持MP4、WebM等常见视频格式</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const videoUrlInput = document.getElementById('videoUrl');
+        const playBtn = document.getElementById('playBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const errorMsg = document.getElementById('errorMsg');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        
+        // 从本地存储加载播放历史
+        let playHistory = JSON.parse(localStorage.getItem('videoPlayHistory')) || [];
+        
+        // 更新历史记录显示
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            if (playHistory.length === 0) {
+                historyList.innerHTML = '<div class="history-item" style="text-align: center; opacity: 0.7;">暂无播放历史</div>';
+                return;
+            }
+            
+            // 只显示最近10条记录
+            const recentHistory = playHistory.slice(-10).reverse();
+            
+            recentHistory.forEach(url => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.textContent = url.length > 80 ? url.substring(0, 80) + '...' : url;
+                historyItem.title = url;
+                
+                historyItem.addEventListener('click', () => {
+                    videoUrlInput.value = url;
+                    playVideo(url);
+                });
+                
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // 播放视频函数
+        function playVideo(url) {
+            // 隐藏错误信息
+            errorMsg.style.display = 'none';
+            
+            // 设置视频源
+            videoPlayer.src = url;
+            
+            // 尝试播放
+            videoPlayer.play().then(() => {
+                console.log('视频开始播放');
+                
+                // 添加到播放历史（如果尚未存在）
+                if (!playHistory.includes(url)) {
+                    playHistory.push(url);
+                    // 保存到本地存储
+                    localStorage.setItem('videoPlayHistory', JSON.stringify(playHistory));
+                    updateHistoryDisplay();
+                }
+            }).catch(error => {
+                console.error('播放失败:', error);
+                errorMsg.style.display = 'block';
+            });
+        }
+        
+        // 事件监听器
+        playBtn.addEventListener('click', () => {
+            const url = videoUrlInput.value.trim();
+            if (url) {
+                playVideo(url);
+            } else {
+                errorMsg.textContent = '请输入有效的视频链接';
+                errorMsg.style.display = 'block';
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            videoUrlInput.value = '';
+            videoPlayer.src = '';
+            errorMsg.style.display = 'none';
+        });
+        
+        clearHistoryBtn.addEventListener('click', () => {
+            playHistory = [];
+            localStorage.setItem('videoPlayHistory', JSON.stringify(playHistory));
+            updateHistoryDisplay();
+        });
+        
+        // 支持按Enter键播放
+        videoUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                playBtn.click();
+            }
+        });
+        
+        // 视频加载错误处理
+        videoPlayer.addEventListener('error', () => {
+            errorMsg.style.display = 'block';
+        });
+        
+        // 初始化显示
+        updateHistoryDisplay();
+        
+        // 自动播放输入框中的默认视频
+        window.addEventListener('load', () => {
+            const defaultUrl = videoUrlInput.value.trim();
+            if (defaultUrl) {
+                playVideo(defaultUrl);
+            }
+        });
+    </script>
+</body>
+</html>
